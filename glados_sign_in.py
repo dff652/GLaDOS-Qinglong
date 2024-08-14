@@ -89,7 +89,7 @@ def start():
             "title":title,
             "content":sendContent,
             "channel":"webhook",
-            "webhook":"1233"
+            "webhook":"设置自定义的webhook编码"
         }
         
         body=json.dumps(data).encode(encoding='utf-8')

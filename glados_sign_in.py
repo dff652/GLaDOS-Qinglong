@@ -2,11 +2,14 @@ import requests,json,os
 import datetime
 import pandas as pd
 
-# pushplus秘钥
-sckey = os.environ.get("PUSHPLUS_TOKEN", "")
+# # pushplus秘钥
+# sckey = os.environ.get("PUSHPLUS_TOKEN", "")
 
-# glados账号cookie
-cookies= os.environ.get("GLADOS_COOKIE", []).split("&")
+# # glados账号cookie
+# cookies= os.environ.get("GLADOS_COOKIE", []).split("&")
+
+sckey = 'bd866fd70ef741d9912ea5d576ce65f7'
+cookies = ['_ga=GA1.1.1660093000.1719800445; koa:sess=eyJjb2RlIjoiNzMwOFktQjJaOE4tTUpQTDktTUhZRkIiLCJ1c2VySWQiOjUxMzIzMCwiX2V4cGlyZSI6MTc0NTcyMDU5OTE5MywiX21heEFnZSI6MjU5MjAwMDAwMDB9; koa:sess.sig=bGsba2KsxGjv2ZUCRytZTl7hwLY; _ga_CZFVKMNT9J=GS1.1.1719800444.1.1.1719800593.0.0.0']
 if cookies[0] == "":
     print('未获取到COOKIE变量') 
     cookies = []
@@ -18,6 +21,9 @@ def calculate_consecutive_days(dataframe):
     """
     df = dataframe.copy()
     interval = df['checkin_date'] -df['checkin_date'].shift(1)
+    if not pd.api.types.is_timedelta64_dtype(interval):
+        interval = pd.to_timedelta(interval)
+    
     interval_days = abs(interval.dt.days)
     
     df['interval_days'] = interval_days.fillna(1)
@@ -90,7 +96,7 @@ def start():
             df_checkin = pd.DataFrame(checkin_result['list'])
             df_checkin['change'] = df_checkin['change'].astype('float')
             df_checkin['checkin_date'] = df_checkin['time'].apply( lambda x: datetime.datetime.fromtimestamp(x/1000).date())
-            df_checkin['checkin_time'] = df_checkin['time'].apply( lambda x: datetime.datetime.fromtimestamp(x/1000)).strftime('%Y-%m-%d %H:%M:%S')
+            df_checkin['checkin_time'] = df_checkin['time'].apply( lambda x: datetime.datetime.fromtimestamp(x/1000).strftime('%Y-%m-%d %H:%M:%S'))
             
             # df_checkin = df_checkin.sort_values('checkin_date', ascending=False)
             

@@ -108,7 +108,7 @@ def start():
             change = df_checkin['change'][0]
             
             # 当前剩余积分
-            balance = int(df_checkin['balance'][0])
+            balance = int(float(df_checkin['balance'][0]))
             
             # 执行签到的时间
             checkin_time = df_checkin['checkin_time'][0]

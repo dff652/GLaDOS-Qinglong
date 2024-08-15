@@ -12,21 +12,19 @@ if cookies[0] == "":
     cookies = []
     exit(0)
 
-def calculate_consecutive_days(data):
+def calculate_consecutive_days(dataframe):
     """
     计算连续签到天数
     """
-    df = pd.DataFrame(data)
-    df['checkin_date'] = df['time'].apply( lambda x: datetime.datetime.fromtimestamp(x/1000))
+    df = dataframe.copy()
+    interval = df['checkin_date'] -df['checkin_date'].shift(1)
+    interval_days = abs(interval.dt.days)
     
-    # 按日期排序
-    df = df.sort_values('checkin_date', ascending=False)
+    df['interval_days'] = interval_days.fillna(1)
+    df['Group'] = (df['interval_days'] != df['interval_days'].shift()).cumsum()
     
-    # 计算连续签到天数
-    df['date_diff'] = df['checkin_date'].diff().dt.days
-
-    # 识别连续签到天数
-    consecutive_days = (df['date_diff'] == -1).sum() + 1
+    consecutive_days =  len(df[df['Group'] == 1])
+    
     
     return consecutive_days
         
@@ -49,8 +47,32 @@ def start():
         'token': 'glados.one'
     }
     for cookie in cookies:
-        checkin = requests.post(url,headers={'cookie': cookie ,'referer': referer,'origin':origin,'user-agent':useragent,'content-type':'application/json;charset=UTF-8'},data=json.dumps(payload))
-        state_response =  requests.get(url2,headers={'cookie': cookie ,'referer': referer,'origin':origin,'user-agent':useragent})
+        checkin = requests.post(url, headers={
+        'cookie': cookie,
+        'referer': referer,
+        'origin': origin,
+        'user-agent': useragent,
+        'content-type': 'application/json;charset=UTF-8'
+        }, data=json.dumps(payload))
+
+        if checkin.status_code == 502:
+            message_content = "签到请求失败，服务器返回502 Bad Gateway"
+            fail += 1
+            sendContent += f"签到状态: {message_content}\n\n"
+            continue
+
+        state_response = requests.get(url2, headers={
+            'cookie': cookie,
+            'referer': referer,
+            'origin': origin,
+            'user-agent': useragent
+        })
+
+        if state_response.status_code != 200 or state_response.json().get('code', -1) == -1:
+            message_content = "获取用户状态失败，可能是无效的cookie或服务器错误"
+            fail += 1
+            sendContent += f"签到状态: {message_content}\n\n"
+            continue
     #--------------------------------------------------------------------------------------------------------#  
         state = state_response.json()
         leftdays = str(state['data']['leftDays']).split('.')[0]
@@ -63,27 +85,58 @@ def start():
             # 本次执行获取的点数
             points = checkin_result['points']
             
-            # 本日签到获取点数
-            change = int(float(checkin_result['list'][0]['change']))
             
-            # 账号当前剩余活动点数
-            balance =  int(float(checkin_result['list'][0]['balance']))
+            # 获取签到记录
+            df_checkin = pd.DataFrame(checkin_result['list'])
+            df_checkin['change'] = df_checkin['change'].astype('float')
+            df_checkin['checkin_date'] = df_checkin['time'].apply( lambda x: datetime.datetime.fromtimestamp(x/1000).date())
+            df_checkin['checkin_time'] = df_checkin['time'].apply( lambda x: datetime.datetime.fromtimestamp(x/1000)).strftime('%Y-%m-%d %H:%M:%S')
+            
+            # df_checkin = df_checkin.sort_values('checkin_date', ascending=False)
+            
+            
+            # 过滤出积分增加和签到记录，排除积分扣除记录
+            valid_checkin = df_checkin[df_checkin['change'] >= 0]
+            deduct_record = df_checkin[df_checkin['change'] < 0]
+            
+            # 本日积分变动
+            change = df_checkin['change'][0]
+            
+            # 当前剩余积分
+            balance = df_checkin['balance'][0]
             
             # 执行签到的时间
-            checkin_timestamp = checkin_result['list'][0]['time'] /1000
-            checkin_time = datetime.datetime.fromtimestamp(checkin_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            checkin_time = df_checkin['checkin_time'][0]
             
-            # 预计签到的日期
-            checkin_date = checkin_result['list'][0]['business'].split(':')[-1]
+            # 最近签到日期
+            checkin_date = df_checkin['checkin_date'][0]
             
-            # 计算连续签到天数
-            consecutive_days = calculate_consecutive_days(checkin_result['list'])
+            # 计算连续天数
+            consecutive_days = calculate_consecutive_days(valid_checkin)
+            
+            
+            
+            # # 本日签到获取点数
+            # change = int(float(checkin_result['list'][0]['change']))
+            
+            # # 账号当前剩余活动点数
+            # balance =  int(float(checkin_result['list'][0]['balance']))
+            
+            # # 执行签到的时间
+            # checkin_timestamp = checkin_result['list'][0]['time'] /1000
+            # checkin_time = datetime.datetime.fromtimestamp(checkin_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            
+            # # 预计签到的日期
+            # checkin_date = checkin_result['list'][0]['business'].split(':')[-1]
+            
+            # # 计算连续签到天数
+            # consecutive_days = calculate_consecutive_days(checkin_result['list'])
             
             print(email+'----'+message_status+'----剩余('+leftdays+')天')
 
-            if "Checkin" in message_status:
+            if "Points" in message_status:
                 success += 1
-                message_content = "签到成功！"
+                message_content = "签到成功"
 
             elif "Please Try Tomorrow" in message_status:
                 message_content = "今日已签到"
@@ -114,7 +167,7 @@ def start():
             本次执行获取积分：{points}\n\
             本日积分变动: {change}\n\
             剩余天数: {leftdays}\n\
-            剩余积分: {balance}\n\
+            当前积分: {balance}\n\
             签到时间: {checkin_time}\n\
             最近签到日期: {checkin_date}\n\
             连续签到天数: {consecutive_days}\n"

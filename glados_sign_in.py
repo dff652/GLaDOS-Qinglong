@@ -2,14 +2,13 @@ import requests,json,os
 import datetime
 import pandas as pd
 
-# # pushplus秘钥
-# sckey = os.environ.get("PUSHPLUS_TOKEN", "")
+# pushplus秘钥
+sckey = os.environ.get("PUSHPLUS_TOKEN", "")
 
-# # glados账号cookie
-# cookies= os.environ.get("GLADOS_COOKIE", []).split("&")
+# glados账号cookie
+cookies= os.environ.get("GLADOS_COOKIE", []).split("&")
 
-sckey = 'bd866fd70ef741d9912ea5d576ce65f7'
-cookies = ['_ga=GA1.1.1660093000.1719800445; koa:sess=eyJjb2RlIjoiNzMwOFktQjJaOE4tTUpQTDktTUhZRkIiLCJ1c2VySWQiOjUxMzIzMCwiX2V4cGlyZSI6MTc0NTcyMDU5OTE5MywiX21heEFnZSI6MjU5MjAwMDAwMDB9; koa:sess.sig=bGsba2KsxGjv2ZUCRytZTl7hwLY; _ga_CZFVKMNT9J=GS1.1.1719800444.1.1.1719800593.0.0.0']
+
 if cookies[0] == "":
     print('未获取到COOKIE变量') 
     cookies = []

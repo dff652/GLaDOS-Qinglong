@@ -83,7 +83,7 @@ def start():
 
             if "Checkin" in message_status:
                 success += 1
-                message_content = "签到成功，会员天数 + 1"
+                message_content = "签到成功！"
 
             elif "Please Try Tomorrow" in message_status:
                 message_content = "今日已签到"

@@ -1,4 +1,6 @@
 import requests,json,os
+import datetime
+import pandas as pd
 
 # pushplus秘钥
 sckey = os.environ.get("PUSHPLUS_TOKEN", "")
@@ -10,8 +12,26 @@ if cookies[0] == "":
     cookies = []
     exit(0)
 
+def calculate_consecutive_days(data):
+    """
+    计算连续签到天数
+    """
+    df = pd.DataFrame(data)
+    df['checkin_date'] = df['time'].apply( lambda x: datetime.datetime.fromtimestamp(x/1000))
+    
+    # 按日期排序
+    df = df.sort_values('checkin_date', ascending=False)
+    
+    # 计算连续签到天数
+    df['date_diff'] = df['checkin_date'].diff().dt.days
 
-
+    # 识别连续签到天数
+    consecutive_days = (df['date_diff'] == -1).sum() + 1
+    
+    return consecutive_days
+        
+    
+    
 
 def start():   
     # 推送内容
@@ -39,7 +59,26 @@ def start():
         if checkin.status_code == 200:
             checkin_result = checkin.json()
             message_status = checkin_result['message']
-
+            
+            # 本次执行获取的点数
+            points = checkin_result['points']
+            
+            # 本日签到获取点数
+            change = int(float(checkin_result['list'][0]['change']))
+            
+            # 账号当前剩余活动点数
+            balance =  int(float(checkin_result['list'][0]['balance']))
+            
+            # 执行签到的时间
+            checkin_timestamp = checkin_result['list'][0]['time'] /1000
+            checkin_time = datetime.datetime.fromtimestamp(checkin_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            
+            # 预计签到的日期
+            checkin_date = checkin_result['list'][0]['business'].split(':')[-1]
+            
+            # 计算连续签到天数
+            consecutive_days = calculate_consecutive_days(checkin_result['list'])
+            
             print(email+'----'+message_status+'----剩余('+leftdays+')天')
 
             if "Checkin" in message_status:
@@ -69,10 +108,16 @@ def start():
             成功：{success}\n\
             失败：{fail}\n\
             账号: {email}\n\
+            状态码：{checkin.status_code}\n\
             签到状态: {message_content}\n\
             签到消息：{message_status}\n\
-            状态码：{checkin.status_code}\n\
-            剩余天数: {message_days}\n"
+            本次执行获取积分：{points}\n\
+            本日积分变动: {change}\n\
+            剩余天数: {leftdays}\n\
+            剩余积分: {balance}\n\
+            签到时间: {checkin_time}\n\
+            最近签到日期: {checkin_date}\n\
+            连续签到天数: {consecutive_days}\n"
         
         if cookie == cookies[-1]:
             sendContent += '-' * 30

@@ -42,7 +42,7 @@ def start():
 
             print(email+'----'+message_status+'----剩余('+leftdays+')天')
 
-            if "Checkin! Get 1 Day" in message_status:
+            if "Checkin! " in message_status:
                 success += 1
                 message_content = "签到成功，会员天数 + 1"
 

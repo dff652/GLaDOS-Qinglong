@@ -8,6 +8,8 @@ sckey = os.environ.get("PUSHPLUS_TOKEN", "")
 # glados账号cookie
 cookies= os.environ.get("GLADOS_COOKIE", []).split("&")
 
+# webhook编码
+webhook_code = os.environ.get("WEBHOOK_CODE", "")
 
 if cookies[0] == "":
     print('未获取到COOKIE变量') 
@@ -82,7 +84,8 @@ def start():
         state = state_response.json()
         leftdays = str(state['data']['leftDays']).split('.')[0]
         email = state['data']['email']
-
+        vip_days = state['data']['vip']
+        
         if checkin.status_code == 200:
             checkin_result = checkin.json()
             message_status = checkin_result['message']
@@ -172,6 +175,7 @@ def start():
             本次执行获取积分：{points}\n\
             本日积分变动: {change}\n\
             剩余天数: {leftdays}\n\
+            剩余VIP天数: {vip_days}\n\
             当前积分: {balance}\n\
             签到时间: {checkin_time}\n\
             最近签到日期: {checkin_date}\n\
@@ -192,7 +196,7 @@ def start():
             "title":title,
             "content":sendContent,
             "channel":"webhook",
-            "webhook":"设置自定义的webhook编码"
+            "webhook": webhook_code,  # 设置自己的webhook编码
         }
         
         body=json.dumps(data).encode(encoding='utf-8')

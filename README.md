@@ -1,5 +1,5 @@
 # 青龙面板部署
-1. 自动添加：订阅管理中创建订阅，复制仓库链接 https://github.com/dff652/GLaDOS-Qinglong.git。 手动添加：在青龙面板的脚本管理中添加脚本
+1. 自动添加：订阅管理中创建订阅，复制仓库链接 https://github.com/dff652/GLaDOS-Qinglong.git  手动添加：在青龙面板的脚本管理中添加脚本
 2. 设置环境变量：GLADOS_COOKIE（必要） ， PUSHPLUS_TOKEN（非必要）， WEBHOOK_CODE（参考pushplus设置教程）。如GLADOS_COOKIE多个账号需使用 '&' 隔开，示例：cookie&cookie
 3. 添加定时任务，设置命令和定时规则
 

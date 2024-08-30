@@ -8,6 +8,10 @@
 2. 配置webhook渠道，如钉钉机器人等，参考 https://www.pushplus.plus/doc/extend/webhook.html#%E4%BD%BF%E7%94%A8%E6%AD%A5%E9%AA%A4
 3. 配置好钉钉机器人后设置webhook编码
 
+# 效果展示
+![image](https://github.com/user-attachments/assets/80205155-7457-4db8-a1c9-34ee1a91cd7d)
+
+
 # 参考项目：
 1. https://github.com/Devilstore/Gladoscheckin
 2. https://github.com/domeniczz/GLaDOS_checkin_auto

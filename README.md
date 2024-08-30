@@ -9,7 +9,7 @@
 3. 配置好钉钉机器人后设置webhook编码
 
 # 效果展示
-![Uploading image.png…]()
+![image](https://github.com/user-attachments/assets/fc84d687-9a62-49db-93ff-2bbad687beb4)
 
 
 
